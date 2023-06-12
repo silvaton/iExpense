@@ -10,25 +10,31 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var expenses = Expenses()
     @State private var showingAddExpense = false
+    var groupedItems: [String: [ExpenseItem]] {
+        Dictionary(grouping: expenses.items, by: {$0.type})
+    }
     
     var body: some View {
         NavigationView {
             List {
-                ForEach(expenses.items) { item in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(item.name)
-                                .font(.headline)
-                            Text(item.type)
+                ForEach(groupedItems.keys.sorted(), id: \.self) { category in
+                    Section(category) {
+                        ForEach(groupedItems[category]!, id: \.id) { item in
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text(item.name)
+                                        .font(.headline)
+                                    Text(item.type)
+                                }
+                                
+                                Spacer()
+                                
+                                Text(item.amount, format: .currency(code: "USD"))
+                            }
                         }
-                        
-                        Spacer()
-                        
-                        Text(item.amount, format: .currency(code: "USD"))
+                        .onDelete(perform: removeItem)
                     }
                 }
-                .onDelete(perform: removeItem)
-                
             }
             .navigationTitle("iExpense")
             .toolbar {
